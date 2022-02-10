@@ -1,3 +1,5 @@
+const User = require("../users/users-model");
+
 function logger(req, res, next) {
   // DO YOUR MAGIC
   const timeStamp = new Date().toLocaleDateString();
@@ -7,19 +9,41 @@ function logger(req, res, next) {
   next();
 }
 
-function validateUserId(req, res, next) {
+async function validateUserId(req, res, next) {
   // DO YOUR MAGIC
-  console.log("validateUserId middleware");
+  try {
+    const user = await User.getById(req.params.id);
+    if (!user) {
+      res.status(404).json({ message: " User doesn't exist" });
+    } else {
+      req.user = user;
+      next();
+    }
+  } catch (err) {
+    //later
+    res.status(500).json({ message: " Error finding the user" });
+  }
 }
 
 function validateUser(req, res, next) {
   // DO YOUR MAGIC
-  console.log("validateUser middleware");
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    res.status(400).json({ message: "missing required name field" });
+  } else {
+    req.name = name.trim();
+    next();
+  }
 }
 
 function validatePost(req, res, next) {
   // DO YOUR MAGIC
-  console.log("validatePost middleware");
+  const { text } = req.body;
+  if (!text) {
+    res.status(400).json({ message: "missing required text field" });
+  } else {
+    next();
+  }
 }
 
 // do not forget to expose these functions to other modules
