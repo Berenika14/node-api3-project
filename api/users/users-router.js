@@ -42,22 +42,36 @@ router.post("/", validateUser, (req, res, next) => {
     .catch(next);
 });
 
-router.put("/:id", validateUserId, validateUser, (req, res) => {
+router.put("/:id", validateUserId, validateUser, (req, res, next) => {
   // RETURN THE FRESHLY UPDATED USER OBJECT
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
-  console.log(req.user);
-  console.log(req.name);
+  User.update(req.params.id, { name: req.name })
+    .then((updatedUser) => {
+      res.json(updatedUser);
+    })
+    .catch();
 });
 
-router.delete("/:id", validateUserId, (req, res) => {
+router.delete("/:id", validateUserId, (req, res, next) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
+
+  User.remove(req.params.id)
+    .then(() => {
+      res.json(req.user);
+    })
+    .catch(next);
 });
 
-router.get("/:id/posts", validateUserId, (req, res) => {
+router.get("/:id/posts", validateUserId, (req, res, next) => {
   // RETURN THE ARRAY OF USER POSTS
   // this needs a middleware to verify user id
+  User.getUserPosts(req.params.id)
+    .then((posts) => {
+      res.json(posts);
+    })
+    .catch(next);
 });
 
 router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
