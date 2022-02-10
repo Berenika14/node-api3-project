@@ -1,22 +1,35 @@
 const express = require("express");
+
+// You will need `users-model.js` and `posts-model.js` both
+const User = require("../users/users-model");
+const Post = require("../posts/posts-model");
+
+// The middleware functions also need to be required
 const {
   validateUserId,
   validateUser,
   validatePost,
 } = require("../middleware/middleware");
-// You will need `users-model.js` and `posts-model.js` both
-// The middleware functions also need to be required
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", (req, res, next) => {
   // RETURN AN ARRAY WITH ALL THE USERS
+  User.get()
+    .then((user) => {
+      res.status(200).json(user);
+    })
+    .catch(next);
 });
 
-router.get("/:id", validateUserId, (req, res) => {
+router.get("/:id", validateUserId, (req, res, next) => {
   // RETURN THE USER OBJECT
   // this needs a middleware to verify user id
-  console.log(req.user);
+  User.getById(req.params.id)
+    .then((user) => {
+      res.status(200).json(user);
+    })
+    .catch(next);
 });
 
 router.post("/", validateUser, (req, res) => {
@@ -49,6 +62,16 @@ router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
   // and another middleware to check that the request body is valid
   console.log(req.user);
   console.log(req.text);
+});
+
+router.use((err, req, res, next) => {
+  res.status(
+    (err.status || 500).json({
+      customMessage: "Something bad inside Post router happened",
+      message: err.message,
+      stack: err.stack,
+    })
+  );
 });
 
 // do not forget to export the router
